@@ -371,6 +371,19 @@ void EditorView::serial_recieve_bytes(int num_bytes)
             data.append(QChar('\n'));
             ++i;
         }
+        else if(buffer[i] == 0x08)
+        {
+            console->delete_last_char();
+            if(i + 3 <= num_bytes)
+            {
+                i += 3;
+            }
+            else
+            {
+                // this has to be validated
+                i = num_bytes;
+            }
+        }
         else
         {
             //console->putData(QChar(buffer[i]));

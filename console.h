@@ -10,6 +10,7 @@ public:
     Console(QWidget *parent);
     void putData(const QChar &data);
     void putData(const QByteArray &data);
+    void delete_last_char();
 
 protected:
     void keyPressEvent(QKeyEvent *e);

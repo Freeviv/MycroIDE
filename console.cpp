@@ -28,6 +28,12 @@ void Console::putData(const QByteArray &data)
     bar->setValue(bar->maximum());
 }
 
+void Console::delete_last_char()
+{
+    textCursor().movePosition(QTextCursor::End);
+    textCursor().deletePreviousChar();
+}
+
 void Console::keyPressEvent(QKeyEvent *e)
 {
     // TODO send correct bytes for del, left ...
@@ -52,14 +58,24 @@ void Console::keyPressEvent(QKeyEvent *e)
             {
                 emit external_text_change(QString(QChar(0x04)));
             }
+            else
+            {
+                QPlainTextEdit::keyPressEvent(e);
+            }
             break;
         case Qt::Key_E:
             if(e->modifiers() & Qt::ControlModifier)
             {
                 emit external_text_change(QString(QChar(0x05)));
             }
+            else
+            {
+                QPlainTextEdit::keyPressEvent(e);
+            }
             break;
         case Qt::Key_Backspace:
+            emit external_text_change(QString(QChar(0x08)));
+            break;
         case Qt::Key_Left:
         case Qt::Key_Right:
         case Qt::Key_Up:
