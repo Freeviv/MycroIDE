@@ -21,8 +21,6 @@
 #include <QPushButton>
 #include <QTabWidget>
 
-QTimer *console_updater;
-
 QMenuBar *menu_bar;
 QStatusBar *status_bar;
 
@@ -59,9 +57,6 @@ EditorView::EditorView(QWidget *parent) :
     QMainWindow(parent)
 {
     console_text_changed = false;
-    console_updater = new QTimer(this);
-    connect(console_updater,SIGNAL(timeout()),SLOT(update_console()));
-    //console_updater->start(10);
     serial_device = nullptr;
     editor_list = new QList<QPlainTextEdit*>();
     filenames = new QList<QString>();
@@ -119,6 +114,9 @@ void EditorView::add_widgets()
 
     // Editor
     tabs = new QTabWidget(src_con_splitter);
+    tabs->setTabsClosable(true);
+    connect(tabs,SIGNAL(tabCloseRequested(int)),SLOT(tab_close_requested(int)));
+
     src_con_splitter->addWidget(tabs);
     editor = new QPlainTextEdit(tabs);
     tabs->addTab(editor,tr("Untitled"));
@@ -274,39 +272,10 @@ QMenu* EditorView::create_edit_menu(QWidget *parent)
     return edit;
 }
 
-void EditorView::update_tabs()
-{
-    if(editor_list->size() == tabs->count())
-        return;
-    for(int i = 0; i < editor_list->size(); ++i)
-    {
-        if(i >= tabs->count() - 1)
-        {
-            tabs->addTab(editor_list->at(i),filenames->at(i));
-        }
-        if(tabs->widget(i) != editor_list->at(i))
-        {
-            // replace widget and name
-        }
-
-    }
-}
-
-void EditorView::update_console()
-{
-    if(console_text_changed)
-    {
-        /*console->setText(console_text);
-        QTextCursor cursor = console->textCursor();
-        cursor.movePosition(QTextCursor::End,QTextCursor::MoveAnchor,0);
-        console->setTextCursor(cursor);
-        console_text_changed = false;*/
-    }
-}
-
 void EditorView::menu_file_new_clicked()
 {
-    qDebug("Test1234");
+    QPlainTextEdit *new_edit = new QPlainTextEdit(tabs);
+    tabs->addTab(new_edit,tr("Untitled"));
 }
 
 void EditorView::menu_file_open_clicked()
@@ -463,4 +432,14 @@ void EditorView::serial_error_handler(QSerialPort::SerialPortError error)
         return;
     }
 
+}
+
+void EditorView::tab_close_requested(int index)
+{
+    // maybe avoid dynamic_cast and use static_cast
+    if(QPlainTextEdit *edit = dynamic_cast<QPlainTextEdit*>(tabs->widget(index)))
+    {
+        // save doc
+        qDebug() << edit->toPlainText();
+    }
 }

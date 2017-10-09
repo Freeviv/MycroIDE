@@ -30,11 +30,7 @@ private:
     QMenu* create_file_menu(QWidget *parent);
     QMenu* create_edit_menu(QWidget *parent);
 
-    void update_tabs();
-
 private slots:
-    void update_console();
-
     // ==== menu slots ====
     // == file slots ==
     void menu_file_new_clicked();
@@ -51,6 +47,9 @@ private slots:
     void serial_recieve_bytes(int num_bytes);
     void console_text_edited(QString text);
     void serial_error_handler(QSerialPort::SerialPortError error);
+
+    // ==== tab slots ====
+    void tab_close_requested(int index);
 };
 
 #endif // EDITORVIEW_H
