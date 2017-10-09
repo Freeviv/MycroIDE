@@ -204,7 +204,7 @@ QWidget* EditorView::create_console_widget(QWidget *root)
 
     console = new Console(console_root_widget);
     con_v_layout->addWidget(console);
-    connect(console,SIGNAL(textChanged()),SLOT(console_text_edited()));
+    connect(console,SIGNAL(external_text_change(QString)),SLOT(console_text_edited(QString)));
 
     // extra lineedit for commands
 //    QWidget *console_send_root_widget = new QWidget(console_root_widget);
@@ -360,7 +360,6 @@ void EditorView::serial_connect_clicked()
 
 void EditorView::serial_recieve_bytes(int num_bytes)
 {
-    printf("Bytes recv: %i\n",num_bytes);
     char *buffer = new char[num_bytes];
     serial_device->read(buffer,num_bytes);
     QByteArray data;
@@ -383,7 +382,9 @@ void EditorView::serial_recieve_bytes(int num_bytes)
     delete buffer;
 }
 
-void EditorView::console_text_edited()
+void EditorView::console_text_edited(QString text)
 {
-
+    if(serial_device)
+        serial_device->write(text.toLatin1().data(),text.length());
+    qDebug() << text;
 }

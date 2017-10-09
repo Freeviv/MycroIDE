@@ -49,7 +49,7 @@ private slots:
     // == serial connection slots ==
     void serial_connect_clicked();
     void serial_recieve_bytes(int num_bytes);
-    void console_text_edited();
+    void console_text_edited(QString text);
 };
 
 #endif // EDITORVIEW_H

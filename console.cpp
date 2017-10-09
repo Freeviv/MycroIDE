@@ -31,6 +31,8 @@ void Console::putData(const QByteArray &data)
 void Console::keyPressEvent(QKeyEvent *e)
 {
     // TODO send correct bytes for del, left ...
+    qDebug(QString::number(e->key()).toStdString().c_str());
+    QKeyEvent event = *e;
     switch (e->key()) {
     case Qt::Key_Backspace:
     case Qt::Key_Left:
@@ -38,9 +40,13 @@ void Console::keyPressEvent(QKeyEvent *e)
     case Qt::Key_Up:
     case Qt::Key_Down:
         break;
+    case Qt::Key_Enter:
+    case Qt::Key_Return:
+        emit external_text_change(QString("\r\n"));
+        break;
     default:
         //qDebug(e->text().toStdString().c_str());
-        emit external_text_change(e->text());
+        //emit external_text_change(e->text());
         QPlainTextEdit::keyPressEvent(e);
     }
 }
@@ -58,6 +64,7 @@ void Console::mouseDoubleClickEvent(QMouseEvent *e)
 
 void Console::text_changed(int pos, int del, int add)
 {
+    Q_UNUSED(del)
     if(ignore_next_change)
     {
         ignore_next_change = false;
@@ -67,5 +74,5 @@ void Console::text_changed(int pos, int del, int add)
     for(int i = 0; i < added.length(); ++i)
         textCursor().deletePreviousChar();
     if(!added.isEmpty())
-        qDebug(added.toStdString().c_str());
+        emit external_text_change(added);
 }
