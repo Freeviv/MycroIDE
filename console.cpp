@@ -31,23 +31,49 @@ void Console::putData(const QByteArray &data)
 void Console::keyPressEvent(QKeyEvent *e)
 {
     // TODO send correct bytes for del, left ...
-    qDebug(QString::number(e->key()).toStdString().c_str());
-    QKeyEvent event = *e;
-    switch (e->key()) {
-    case Qt::Key_Backspace:
-    case Qt::Key_Left:
-    case Qt::Key_Right:
-    case Qt::Key_Up:
-    case Qt::Key_Down:
-        break;
-    case Qt::Key_Enter:
-    case Qt::Key_Return:
-        emit external_text_change(QString("\r\n"));
-        break;
-    default:
-        //qDebug(e->text().toStdString().c_str());
-        //emit external_text_change(e->text());
-        QPlainTextEdit::keyPressEvent(e);
+    // standart key sequences on all plattforms
+    if(e->matches(QKeySequence::SelectAll))
+    {
+        emit external_text_change(QString(QChar(0x01)));
+    }
+    else if(e->matches(QKeySequence::Bold))
+    {
+        emit external_text_change(QString(QChar(0x02)));
+    }
+    else if(e->matches(QKeySequence::Copy))
+    {
+        emit external_text_change(QString(QChar(0x03)));
+    }
+    else
+    {
+        switch (e->key()) {
+        case Qt::Key_D:
+            if(e->modifiers() & Qt::ControlModifier)
+            {
+                emit external_text_change(QString(QChar(0x04)));
+            }
+            break;
+        case Qt::Key_E:
+            if(e->modifiers() & Qt::ControlModifier)
+            {
+                emit external_text_change(QString(QChar(0x05)));
+            }
+            break;
+        case Qt::Key_Backspace:
+        case Qt::Key_Left:
+        case Qt::Key_Right:
+        case Qt::Key_Up:
+        case Qt::Key_Down:
+            break;
+        case Qt::Key_Enter:
+        case Qt::Key_Return:
+            emit external_text_change(QString("\r\n"));
+            break;
+        default:
+            //qDebug(e->text().toStdString().c_str());
+            //emit external_text_change(e->text());
+            QPlainTextEdit::keyPressEvent(e);
+        }
     }
 }
 
