@@ -36,7 +36,7 @@ Console *console;
 QLineEdit *console_command;
 QAbstractButton *con;
 QAbstractButton *console_command_send;
-QTabWidget *editors;
+QTabWidget *tabs;
 QList<QPlainTextEdit*> *editor_list;
 QList<QString> *filenames;
 QPlainTextEdit *editor;
@@ -118,8 +118,10 @@ void EditorView::add_widgets()
     sidebar_splitter->addWidget(src_con_splitter);
 
     // Editor
-    editor = new QPlainTextEdit(src_con_splitter);
-    src_con_splitter->addWidget(editor);
+    tabs = new QTabWidget(src_con_splitter);
+    src_con_splitter->addWidget(tabs);
+    editor = new QPlainTextEdit(tabs);
+    tabs->addTab(editor,tr("Untitled"));
 
     // Console and Connection splitter
     con_splitter = new QSplitter(src_con_splitter);
@@ -274,15 +276,15 @@ QMenu* EditorView::create_edit_menu(QWidget *parent)
 
 void EditorView::update_tabs()
 {
-    if(editor_list->size() == editors->count())
+    if(editor_list->size() == tabs->count())
         return;
     for(int i = 0; i < editor_list->size(); ++i)
     {
-        if(i >= editors->count() - 1)
+        if(i >= tabs->count() - 1)
         {
-            editors->addTab(editor_list->at(i),filenames->at(i));
+            tabs->addTab(editor_list->at(i),filenames->at(i));
         }
-        if(editors->widget(i) != editor_list->at(i))
+        if(tabs->widget(i) != editor_list->at(i))
         {
             // replace widget and name
         }
