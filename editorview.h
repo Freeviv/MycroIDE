@@ -50,6 +50,7 @@ private slots:
     void serial_connect_clicked();
     void serial_recieve_bytes(int num_bytes);
     void console_text_edited(QString text);
+    void serial_error_handler(QSerialPort::SerialPortError error);
 };
 
 #endif // EDITORVIEW_H

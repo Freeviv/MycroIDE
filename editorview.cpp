@@ -34,6 +34,7 @@ QListWidget  *sidebar;
 
 Console *console;
 QLineEdit *console_command;
+QAbstractButton *con;
 QAbstractButton *console_command_send;
 QTabWidget *editors;
 QList<QPlainTextEdit*> *editor_list;
@@ -178,7 +179,7 @@ QWidget* EditorView::create_connection_widget(QWidget *root)
     connection_root_widget->setLayout(connection_layout);
 
     // Add widgets to connection Layout
-    QPushButton *con = new QPushButton("Connect",connection_root_widget);
+    con = new QPushButton("Connect",connection_root_widget);
     connect(con,SIGNAL(pressed()),SLOT(serial_connect_clicked()));
 
     serial_device_path = new QLineEdit(connection_root_widget);
@@ -343,18 +344,34 @@ void EditorView::menu_file_quit_clicked()
 
 void EditorView::serial_connect_clicked()
 {
-    serial_device = new Serial(serial_device_path->text());
-    serial_device->setBaudrate(baud_combobox->currentData().toInt());
-    if(serial_device->open())
+    if(!serial_device)
     {
-        status_bar->showMessage(tr("Successfully opened ") + serial_device_path->text() + "!");
-        //console->setText(QString());
-        console->clear();
-        connect(serial_device,SIGNAL(signal_data_available(int)),SLOT(serial_recieve_bytes(int)));
+        serial_device = new Serial(serial_device_path->text());
+        connect(serial_device,SIGNAL(signal_device_error(QSerialPort::SerialPortError)),SLOT(serial_error_handler(QSerialPort::SerialPortError)));
+        serial_device->setBaudrate(baud_combobox->currentData().toInt());
+        if(serial_device->open())
+        {
+            status_bar->showMessage(tr("Successfully opened ") + serial_device_path->text() + "!",2500);
+            //console->setText(QString());
+            console->clear();
+            connect(serial_device,SIGNAL(signal_data_available(int)),SLOT(serial_recieve_bytes(int)));
+            con->setText(tr("Disconnect"));
+        }
+        else
+        {
+            delete serial_device;
+            serial_device = nullptr;
+        }
     }
     else
     {
-        status_bar->showMessage(tr("Could not open serial device: ") + serial_device_path->text(),2000);
+        disconnect(serial_device,SIGNAL(signal_device_error(QSerialPort::SerialPortError)),this,SLOT(serial_error_handler(QSerialPort::SerialPortError)));
+        //disconnect(this,SLOT(serial_error_handler(QSerialPort::SerialPortError)));
+        serial_device->close();
+        delete serial_device;
+        serial_device = nullptr;
+        con->setText(tr("Connect"));
+        status_bar->showMessage(tr("Disconnected"),2500);
     }
 }
 
@@ -367,7 +384,6 @@ void EditorView::serial_recieve_bytes(int num_bytes)
     {
         if(buffer[i] == 0x0d)
         {
-            //console->putData("\n");
             data.append(QChar('\n'));
             ++i;
         }
@@ -386,7 +402,6 @@ void EditorView::serial_recieve_bytes(int num_bytes)
         }
         else
         {
-            //console->putData(QChar(buffer[i]));
             data.append(QChar(buffer[i]));
         }
     }
@@ -400,4 +415,50 @@ void EditorView::console_text_edited(QString text)
     if(serial_device)
         serial_device->write(text.toLatin1().data(),text.length());
     qDebug() << text;
+}
+
+void EditorView::serial_error_handler(QSerialPort::SerialPortError error)
+{
+    // needs to be improved
+    if(error & QSerialPort::DeviceNotFoundError)
+    {
+        status_bar->showMessage(tr("Device \"") + serial_device_path->text() + tr("\" could not be opened! (Device not found error)"));
+        return;
+    }
+    if(error & QSerialPort::OpenError)
+    {
+        status_bar->showMessage(tr("Device \"") + serial_device_path->text() + tr("\" could not be opened! (Device busy)"));
+        return;
+    }
+    if(error & QSerialPort::WriteError)
+    {
+        status_bar->showMessage(tr("Device \"") + serial_device_path->text() + tr("\" was closed! (Write error)"));
+        return;
+    }
+    if(error & QSerialPort::ReadError)
+    {
+        status_bar->showMessage(tr("Device \"") + serial_device_path->text() + tr("\" was closed! (Read error)"));
+        return;
+    }
+    if(error & QSerialPort::ResourceError)
+    {
+        status_bar->showMessage(tr("Device \"") + serial_device_path->text() + tr("\" was closed! An I/O error occurred (Device was probably unplugged from system)"));
+        return;
+    }
+    if(error & QSerialPort::UnsupportedOperationError)
+    {
+        status_bar->showMessage(tr("Device \"") + serial_device_path->text() + tr("\" was closed! An operation was not supported by the running OS."));
+        return;
+    }
+    if(error & QSerialPort::TimeoutError)
+    {
+        status_bar->showMessage(tr("Device \"") + serial_device_path->text() + tr("\" had a timeout! Disconnecting."));
+        return;
+    }
+    if(error & QSerialPort::UnknownError)
+    {
+        status_bar->showMessage(tr("An unknown error occurred with the device \"") + serial_device_path->text() + tr("\". Disconnecting."));
+        return;
+    }
+
 }

@@ -28,9 +28,11 @@ private:
 
 private slots:
     void slot_data_available();
+    void slot_device_error(QSerialPort::SerialPortError error);
 
 signals:
     void signal_data_available(int num_bytes);
+    void signal_device_error(QSerialPort::SerialPortError error);
 };
 
 #endif // SERIAL_H

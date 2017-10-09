@@ -9,16 +9,24 @@ Serial::Serial(QString port)
     m_port_path = port;
     m_port = new QSerialPort(this);
     connect(m_port,SIGNAL(readyRead()),SLOT(slot_data_available()));
+    connect(m_port,SIGNAL(errorOccurred(QSerialPort::SerialPortError)),SLOT(slot_device_error(QSerialPort::SerialPortError)));
 }
 
 Serial::~Serial()
 {
-
+    close();
 }
 
 void Serial::slot_data_available()
 {
     emit signal_data_available(m_port->bytesAvailable());
+}
+
+void Serial::slot_device_error(QSerialPort::SerialPortError error)
+{
+    if(error & QSerialPort::NoError)
+        return;
+    emit signal_device_error(error);
 }
 
 void Serial::setBaudrate(unsigned int rate)
