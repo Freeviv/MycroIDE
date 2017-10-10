@@ -26,10 +26,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += main.cpp\
         editorview.cpp \
     serial.cpp \
-    console.cpp
+    console.cpp \
+    pythonhighlighter.cpp
 
 HEADERS  += editorview.h \
     serial.h \
-    console.h
+    console.h \
+    pythonhighlighter.h
 
 FORMS    +=
