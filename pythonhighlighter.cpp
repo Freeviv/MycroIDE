@@ -1,5 +1,7 @@
 #include "pythonhighlighter.h"
 
+#include <QTextDocument>
+
 #include <QDebug>
 
 PythonHighlighter::PythonHighlighter(QTextDocument *parent)
@@ -51,7 +53,8 @@ PythonHighlighter::PythonHighlighter(QTextDocument *parent)
     rule.format = functionFormat;
     highlightingRules.append(rule);
 
-//    multilineCommentExpression = QRegularExpression("(['\"])\\1\\1(.*?)\\1{3});
+    multilineCommentExpression = QRegularExpression("(['\"])\\1\\1(.*?)\\1{3}");
+    multilineCommentExpression.setPatternOptions(QRegularExpression::DotMatchesEverythingOption);
 }
 
 void PythonHighlighter::highlightBlock(const QString &text)
@@ -63,7 +66,17 @@ void PythonHighlighter::highlightBlock(const QString &text)
             setFormat(match.capturedStart(), match.capturedLength(), rule.format);
         }
     }
-    setCurrentBlockState(0);
+    //optimize
+    do_multiline_highlights();
+}
 
-    //TODO multiline comment
+void PythonHighlighter::do_multiline_highlights()
+{
+    QTextDocument *doc = document();
+    QString text = doc->toPlainText();
+    QRegularExpressionMatchIterator matchIterator = multilineCommentExpression.globalMatch(text);
+    while (matchIterator.hasNext()) {
+        QRegularExpressionMatch match = matchIterator.next();
+        setFormat(match.capturedStart(), match.capturedLength(), multiLineCommentFormat);
+    }
 }

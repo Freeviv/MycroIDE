@@ -15,6 +15,7 @@ protected:
     void highlightBlock(const QString &text) override;
 
 private:
+    QChar ml_char;
     struct HighlightingRule
     {
         QRegularExpression pattern;
@@ -31,6 +32,7 @@ private:
     QTextCharFormat quotationFormat;
     QTextCharFormat functionFormat;
 
+    void do_multiline_highlights();
 };
 
 #endif // PYTHONHIGHLIGHTER_H
