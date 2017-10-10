@@ -53,8 +53,11 @@ PythonHighlighter::PythonHighlighter(QTextDocument *parent)
     rule.format = functionFormat;
     highlightingRules.append(rule);
 
-    multilineCommentExpression = QRegularExpression("(['\"])\\1\\1(.*?)\\1{3}");
-    multilineCommentExpression.setPatternOptions(QRegularExpression::DotMatchesEverythingOption);
+//    multilineCommentExpression = QRegularExpression("(['\"])\\1\\1(.*?)\\1{3}");
+//    multilineCommentExpression.setPatternOptions(QRegularExpression::DotMatchesEverythingOption);
+
+    mls = QRegularExpression("(['\"])\\1\\1");
+    mle = QRegularExpression(".*(['\"])\\1\\1");
 }
 
 void PythonHighlighter::highlightBlock(const QString &text)
@@ -66,17 +69,27 @@ void PythonHighlighter::highlightBlock(const QString &text)
             setFormat(match.capturedStart(), match.capturedLength(), rule.format);
         }
     }
-    //optimize
-    do_multiline_highlights();
-}
 
-void PythonHighlighter::do_multiline_highlights()
-{
-    QTextDocument *doc = document();
-    QString text = doc->toPlainText();
-    QRegularExpressionMatchIterator matchIterator = multilineCommentExpression.globalMatch(text);
-    while (matchIterator.hasNext()) {
-        QRegularExpressionMatch match = matchIterator.next();
-        setFormat(match.capturedStart(), match.capturedLength(), multiLineCommentFormat);
+    setCurrentBlockState(0);
+    int start = text.indexOf(mls);
+    if(start != -1)
+    {
+        if(previousBlockState() == 1)
+        {
+            setFormat(0,start + 3,multiLineCommentFormat);
+        }
+        else
+        {
+            setFormat(start,text.length() - start,multiLineCommentFormat);
+            setCurrentBlockState(1);
+        }
+    }
+    else
+    {
+        if(previousBlockState() == 1)
+        {
+            setCurrentBlockState(1);
+            setFormat(0,text.length(),multiLineCommentFormat);
+        }
     }
 }
