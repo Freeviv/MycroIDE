@@ -114,7 +114,9 @@ void EditorView::add_widgets()
 
     src_con_splitter->addWidget(tabs);
     QTextEdit *editor = new QTextEdit(tabs);
+    new PythonHighlighter(editor->document());
     tabs->addTab(editor,tr("Untitled"));
+    editor->document()->setModified(false);
     connect(editor->document(),SIGNAL(contentsChanged()),SLOT(document_changed()));
 
     // Console and Connection splitter
@@ -345,7 +347,8 @@ bool EditorView::save_document(QTextDocument *doc)
 void EditorView::document_changed()
 {
     int current_index = tabs->currentIndex();
-    if(!tabs->tabText(current_index).endsWith('*'))
+    if(static_cast<QTextEdit*>(tabs->currentWidget())->document()->isModified() &&
+            !tabs->tabText(current_index).endsWith('*'))
     {
         tabs->setTabText(current_index,tabs->tabText(current_index) + "*");
     }
@@ -355,7 +358,9 @@ void EditorView::document_changed()
 
 void EditorView::menu_file_new_clicked()
 {
-    QPlainTextEdit *new_edit = new QPlainTextEdit(tabs);
+    QTextEdit *new_edit = new QTextEdit(tabs);
+    // should be deleted when textedit is deleted
+    new PythonHighlighter(new_edit->document());
     tabs->addTab(new_edit,tr("Untitled"));
     connect(new_edit->document(),SIGNAL(contentsChanged()),SLOT(document_changed()));
 }
@@ -367,7 +372,7 @@ void EditorView::menu_file_open_clicked()
 
 void EditorView::menu_file_save_current_clicked()
 {
-
+    save_document(static_cast<QTextEdit*>(tabs->currentWidget())->document());
 }
 
 void EditorView::menu_file_save_current_as_clicked()

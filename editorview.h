@@ -5,6 +5,7 @@
 #include <QTextDocument>
 
 #include "serial.h"
+#include "pythonhighlighter.h"
 
 class EditorView : public QMainWindow
 {
@@ -16,6 +17,7 @@ public:
 
 private:
     Serial *serial_device;
+    PythonHighlighter *highlighter;
     QString console_text;
     bool console_text_changed;
     void setup_gui();
