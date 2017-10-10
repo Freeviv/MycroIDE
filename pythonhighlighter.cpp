@@ -1,5 +1,7 @@
 #include "pythonhighlighter.h"
 
+#include <QDebug>
+
 PythonHighlighter::PythonHighlighter(QTextDocument *parent)
     : QSyntaxHighlighter(parent)
 {
@@ -31,8 +33,8 @@ PythonHighlighter::PythonHighlighter(QTextDocument *parent)
     rule.format = classFormat;
     highlightingRules.append(rule);
 
-    singleLineCommentFormat.setForeground(Qt::red);
-    rule.pattern = QRegularExpression("//[^\n]*");
+    singleLineCommentFormat.setForeground(Qt::gray);
+    rule.pattern = QRegularExpression("#[^\n]*");
     rule.format = singleLineCommentFormat;
     highlightingRules.append(rule);
 
@@ -49,8 +51,7 @@ PythonHighlighter::PythonHighlighter(QTextDocument *parent)
     rule.format = functionFormat;
     highlightingRules.append(rule);
 
-    commentStartExpression = QRegularExpression("/\\*");
-    commentEndExpression = QRegularExpression("\\*/");
+//    multilineCommentExpression = QRegularExpression("(['\"])\\1\\1(.*?)\\1{3});
 }
 
 void PythonHighlighter::highlightBlock(const QString &text)
@@ -64,22 +65,5 @@ void PythonHighlighter::highlightBlock(const QString &text)
     }
     setCurrentBlockState(0);
 
-    int startIndex = 0;
-    if (previousBlockState() != 1)
-        startIndex = text.indexOf(commentStartExpression);
-
-    while (startIndex >= 0) {
-        QRegularExpressionMatch match = commentEndExpression.match(text, startIndex);
-        int endIndex = match.capturedStart();
-        int commentLength = 0;
-        if (endIndex == -1) {
-            setCurrentBlockState(1);
-            commentLength = text.length() - startIndex;
-        } else {
-            commentLength = endIndex - startIndex
-                    + match.capturedLength();
-        }
-        setFormat(startIndex, commentLength, multiLineCommentFormat);
-        startIndex = text.indexOf(commentStartExpression, startIndex + commentLength);
-    }
+    //TODO multiline comment
 }
