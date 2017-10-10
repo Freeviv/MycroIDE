@@ -35,9 +35,6 @@ QLineEdit *console_command;
 QAbstractButton *con;
 QAbstractButton *console_command_send;
 QTabWidget *tabs;
-QList<QPlainTextEdit*> *editor_list;
-QList<QString> *filenames;
-QPlainTextEdit *editor;
 
 QLineEdit *serial_device_path;
 
@@ -58,8 +55,6 @@ EditorView::EditorView(QWidget *parent) :
 {
     console_text_changed = false;
     serial_device = nullptr;
-    editor_list = new QList<QPlainTextEdit*>();
-    filenames = new QList<QString>();
     setup_gui();
 }
 
@@ -71,8 +66,6 @@ EditorView::~EditorView()
         delete serial_device;
         serial_device = nullptr;
     }
-    delete editor_list;
-    delete filenames;
 }
 
 void EditorView::setup_gui()
@@ -118,7 +111,7 @@ void EditorView::add_widgets()
     connect(tabs,SIGNAL(tabCloseRequested(int)),SLOT(tab_close_requested(int)));
 
     src_con_splitter->addWidget(tabs);
-    editor = new QPlainTextEdit(tabs);
+    QTextEdit *editor = new QTextEdit(tabs);
     tabs->addTab(editor,tr("Untitled"));
 
     // Console and Connection splitter
@@ -269,6 +262,33 @@ QMenu* EditorView::create_edit_menu(QWidget *parent)
 {
     QMenu *edit = new QMenu(tr("Edit"),parent);
 
+    QAction *edit_undo = new QAction(tr("Undo"),edit);
+    edit_undo->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Z));
+    connect(edit_undo,SIGNAL(triggered(bool)),SLOT(menu_edit_undo_clicked()));
+    edit->addAction(edit_undo);
+
+    QAction *edit_redo = new QAction(tr("Redo"),edit);
+    edit_redo->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Z));
+    connect(edit_redo,SIGNAL(triggered(bool)),SLOT(menu_edit_redo_clicked()));
+    edit->addAction(edit_redo);
+
+    edit->addSeparator();
+
+    QAction *edit_cut = new QAction(tr("Undo"),edit);
+    edit_cut->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_X));
+    connect(edit_cut,SIGNAL(triggered(bool)),SLOT(menu_edit_cut_clicked()));
+    edit->addAction(edit_cut);
+
+    QAction *edit_copy = new QAction(tr("Undo"),edit);
+    edit_copy->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_C));
+    connect(edit_copy,SIGNAL(triggered(bool)),SLOT(menu_edit_copy_clicked()));
+    edit->addAction(edit_copy);
+
+    QAction *edit_paste = new QAction(tr("Undo"),edit);
+    edit_paste->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_V));
+    connect(edit_paste,SIGNAL(triggered(bool)),SLOT(menu_edit_paste_clicked()));
+    edit->addAction(edit_paste);
+
     return edit;
 }
 
@@ -309,6 +329,33 @@ void EditorView::menu_file_close_all_clicked()
 }
 
 void EditorView::menu_file_quit_clicked()
+{
+
+}
+
+void EditorView::menu_edit_undo_clicked()
+{
+    QTextEdit *edit = static_cast<QTextEdit*>(tabs->currentWidget());
+    edit->document()->undo();
+}
+
+void EditorView::menu_edit_redo_clicked()
+{
+    QTextEdit *edit = static_cast<QTextEdit*>(tabs->currentWidget());
+    edit->document()->redo();
+}
+
+void EditorView::menu_edit_cut_clicked()
+{
+
+}
+
+void EditorView::menu_edit_copy_clicked()
+{
+
+}
+
+void EditorView::menu_edit_paste_clicked()
 {
 
 }
@@ -437,9 +484,10 @@ void EditorView::serial_error_handler(QSerialPort::SerialPortError error)
 void EditorView::tab_close_requested(int index)
 {
     // maybe avoid dynamic_cast and use static_cast
-    if(QPlainTextEdit *edit = dynamic_cast<QPlainTextEdit*>(tabs->widget(index)))
+    if(QTextEdit *edit = dynamic_cast<QTextEdit*>(tabs->widget(index)))
     {
+        QTextDocument *doc = edit->document();
         // save doc
-        qDebug() << edit->toPlainText();
+        qDebug() << doc->baseUrl().toString();
     }
 }

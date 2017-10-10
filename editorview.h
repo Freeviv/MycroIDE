@@ -41,6 +41,12 @@ private slots:
     void menu_file_close_current_clicked();
     void menu_file_close_all_clicked();
     void menu_file_quit_clicked();
+    // == edit slots ==
+    void menu_edit_undo_clicked();
+    void menu_edit_redo_clicked();
+    void menu_edit_cut_clicked();
+    void menu_edit_copy_clicked();
+    void menu_edit_paste_clicked();
 
     // == serial connection slots ==
     void serial_connect_clicked();
