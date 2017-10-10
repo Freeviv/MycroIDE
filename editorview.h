@@ -2,6 +2,7 @@
 #define EDITORVIEW_H
 
 #include <QMainWindow>
+#include <QTextDocument>
 
 #include "serial.h"
 
@@ -30,7 +31,10 @@ private:
     QMenu* create_file_menu(QWidget *parent);
     QMenu* create_edit_menu(QWidget *parent);
 
+    bool save_document(QTextDocument *doc);
+
 private slots:
+    void document_changed();
     // ==== menu slots ====
     // == file slots ==
     void menu_file_new_clicked();

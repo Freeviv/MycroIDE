@@ -20,6 +20,8 @@
 #include <QComboBox>
 #include <QPushButton>
 #include <QTabWidget>
+#include <QMessageBox>
+#include <QFileDialog>
 
 QMenuBar *menu_bar;
 QStatusBar *status_bar;
@@ -113,6 +115,7 @@ void EditorView::add_widgets()
     src_con_splitter->addWidget(tabs);
     QTextEdit *editor = new QTextEdit(tabs);
     tabs->addTab(editor,tr("Untitled"));
+    connect(editor->document(),SIGNAL(contentsChanged()),SLOT(document_changed()));
 
     // Console and Connection splitter
     con_splitter = new QSplitter(src_con_splitter);
@@ -292,10 +295,69 @@ QMenu* EditorView::create_edit_menu(QWidget *parent)
     return edit;
 }
 
+bool EditorView::save_document(QTextDocument *doc)
+{
+    QFile *save_file;
+    if(doc->metaInformation(QTextDocument::DocumentUrl).isEmpty()    ||
+       doc->metaInformation(QTextDocument::DocumentTitle).isEmpty())
+    {
+        QFileDialog dia;
+        dia.setAcceptMode(QFileDialog::AcceptSave);
+        if(dia.exec())
+        {
+            QStringList fl = dia.selectedFiles();
+            save_file = new QFile(fl.at(0));
+            doc->setMetaInformation(QTextDocument::DocumentUrl,fl.at(0));
+            doc->setMetaInformation(QTextDocument::DocumentTitle,QFileInfo(*save_file).baseName());
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else
+    {
+        save_file = new QFile(doc->metaInformation(QTextDocument::DocumentUrl));
+    }
+    if(save_file->open(QIODevice::ReadWrite | QIODevice::Text))
+    {
+        status_bar->showMessage(tr("Saving \"") + save_file->fileName() + "\"...");
+        QTextStream stream(save_file);
+        stream << doc->toPlainText() << endl;
+        stream.flush();
+
+        status_bar->showMessage(tr("Successfully saved \"") + save_file->fileName() + "\"!",3000);
+        tabs->setTabText(tabs->currentIndex(),doc->metaInformation(QTextDocument::DocumentTitle));
+        doc->setModified(false);
+        save_file->deleteLater();
+
+        return true;
+    }
+    else
+    {
+        // here another message box
+        status_bar->showMessage(tr("Could not open \"") + save_file->fileName() + "\"! (" + save_file->errorString() + ")");
+        save_file->deleteLater();
+        return false;
+    }
+}
+
+void EditorView::document_changed()
+{
+    int current_index = tabs->currentIndex();
+    if(!tabs->tabText(current_index).endsWith('*'))
+    {
+        tabs->setTabText(current_index,tabs->tabText(current_index) + "*");
+    }
+
+
+}
+
 void EditorView::menu_file_new_clicked()
 {
     QPlainTextEdit *new_edit = new QPlainTextEdit(tabs);
     tabs->addTab(new_edit,tr("Untitled"));
+    connect(new_edit->document(),SIGNAL(contentsChanged()),SLOT(document_changed()));
 }
 
 void EditorView::menu_file_open_clicked()
@@ -487,6 +549,35 @@ void EditorView::tab_close_requested(int index)
     if(QTextEdit *edit = dynamic_cast<QTextEdit*>(tabs->widget(index)))
     {
         QTextDocument *doc = edit->document();
+        if(doc->isModified())
+        {
+            QMessageBox box;
+            box.setText(tr("The document has been modified."));
+            box.setInformativeText(tr("Do you want to save your changes?"));
+            box.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+            box.setDefaultButton(QMessageBox::Save);
+            switch (box.exec()) {
+            case QMessageBox::Save:
+                if(save_document(doc))
+                {
+                    // save complete, close doc
+                }
+                else
+                {
+                    // save incomplete, dont close doc
+                }
+                break;
+            case QMessageBox::Discard:
+                // TODO
+                break;
+            case QMessageBox::Cancel:
+                // Cancel was clicked
+                break;
+            default:
+                // should never be reached
+                break;
+            }
+        }
         // save doc
         qDebug() << doc->baseUrl().toString();
     }
