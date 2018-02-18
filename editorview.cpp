@@ -144,6 +144,7 @@ void EditorView::add_menu()
     this->setMenuBar(menu_bar);
     menu_bar->addMenu(create_file_menu(menu_bar));
     menu_bar->addMenu(create_edit_menu(menu_bar));
+    menu_bar->addMenu(create_deploy_menu(menu_bar));
 }
 
 void EditorView::add_status()
@@ -298,6 +299,33 @@ QMenu* EditorView::create_edit_menu(QWidget *parent)
     return edit;
 }
 
+QMenu* EditorView::create_deploy_menu(QWidget *parent)
+{
+    QMenu *deploy = new QMenu(tr("Deploy"),parent);
+
+    QAction *deploy_selected = new QAction(tr("Upload selected"),deploy);
+    deploy_selected->setShortcut(QKeySequence(Qt::Key_F5));
+    connect(deploy_selected,SIGNAL(triggered(bool)),SLOT(menu_deploy_upload_selected()));
+    deploy->addAction(deploy_selected);
+
+    QAction *deploy_file = new QAction(tr("Upload file"),deploy);
+    deploy_file->setShortcut(QKeySequence(Qt::Key_F6));
+    connect(deploy_file,SIGNAL(triggered(bool)),SLOT(menu_deploy_upload_file()));
+    deploy->addAction(deploy_file);
+
+    QAction *deploy_file_to_file = new QAction(tr("Upload file into file"),deploy);
+    deploy_file_to_file->setShortcut(QKeySequence(Qt::Key_F7));
+    connect(deploy_file_to_file,SIGNAL(triggered(bool)),SLOT(menu_deploy_upload_file_to_file()));
+    deploy->addAction(deploy_file_to_file);
+
+    QAction *deploy_all_open = new QAction(tr("Upload all open into file"),deploy);
+    deploy_all_open->setShortcut(QKeySequence(Qt::Key_F8));
+    connect(deploy_all_open,SIGNAL(triggered(bool)),SLOT(menu_deploy_upload_all_open()));
+    deploy->addAction(deploy_all_open);
+
+    return deploy;
+}
+
 bool EditorView::save_document(QTextDocument *doc)
 {
     QFile *save_file;
@@ -428,6 +456,74 @@ void EditorView::menu_edit_paste_clicked()
 
 }
 
+void EditorView::menu_deploy_upload_selected()
+{
+    if(serial_device)
+    {
+        //serial_device->write(QChar(0x04),1);
+        QByteArray data;
+        data.append(QChar(0x05)); // enter past mode
+        QString text = static_cast<QTextEdit*>(tabs->currentWidget())->textCursor().selectedText();
+        foreach(QString subst,text.split("\n"))
+        {
+            //TODO
+            data.append(subst);
+            data.append(QChar('\r'));
+            data.append(QChar('\n'));
+        }
+        data.append(QChar(0x04)); // leave paste mode
+        serial_device->write(data.data(),data.length());
+        data.clear();
+    }
+    else
+    {
+        status_bar->showMessage("Could not deploy. No serial device connected!",2500);
+    }
+}
+
+void EditorView::menu_deploy_upload_file()
+{
+    if(serial_device)
+    {
+        //serial_device->write(QChar(0x04),1);
+        QByteArray data;
+        data.append(QChar(0x05)); // enter past mode
+        QString text = static_cast<QTextEdit*>(tabs->currentWidget())->document()->toPlainText();
+        data.append(text);
+        data.append(QChar(0x04)); // leave paste mode
+        serial_device->write(data.data(),data.length());
+        data.clear();
+    }
+    else
+    {
+        status_bar->showMessage("Could not deploy. No serial device connected!",2500);
+    }
+}
+
+void EditorView::menu_deploy_upload_file_to_file()
+{
+    if(serial_device)
+    {
+
+    }
+    else
+    {
+        status_bar->showMessage("Could not deploy. No serial device connected!",2500);
+    }
+}
+
+void EditorView::menu_deploy_upload_all_open()
+{
+    if(serial_device)
+    {
+
+    }
+    else
+    {
+        status_bar->showMessage("Could not deploy. No serial device connected!",2500);
+    }
+}
+
 void EditorView::serial_connect_clicked()
 {
     if(!serial_device)
@@ -500,7 +596,6 @@ void EditorView::console_text_edited(QString text)
 {
     if(serial_device)
         serial_device->write(text.toLatin1().data(),text.length());
-    qDebug() << text;
 }
 
 void EditorView::serial_error_handler(QSerialPort::SerialPortError error)
@@ -584,7 +679,5 @@ void EditorView::tab_close_requested(int index)
                 break;
             }
         }
-        // save doc
-        qDebug() << doc->baseUrl().toString();
     }
 }

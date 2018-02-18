@@ -32,6 +32,7 @@ private:
 
     QMenu* create_file_menu(QWidget *parent);
     QMenu* create_edit_menu(QWidget *parent);
+    QMenu* create_deploy_menu(QWidget *parent);
 
     bool save_document(QTextDocument *doc);
 
@@ -53,6 +54,11 @@ private slots:
     void menu_edit_cut_clicked();
     void menu_edit_copy_clicked();
     void menu_edit_paste_clicked();
+    // == deploy slots ==
+    void menu_deploy_upload_selected();
+    void menu_deploy_upload_file();
+    void menu_deploy_upload_file_to_file();
+    void menu_deploy_upload_all_open();
 
     // == serial connection slots ==
     void serial_connect_clicked();
