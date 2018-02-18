@@ -32,6 +32,7 @@ private:
     QTextCharFormat multiLineCommentFormat;
     QTextCharFormat quotationFormat;
     QTextCharFormat functionFormat;
+    QTextCharFormat selfFormat;
 
     void do_multiline_highlights();
 };
