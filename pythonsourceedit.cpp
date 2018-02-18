@@ -35,6 +35,11 @@ void PythonSourceEdit::keyPressEvent(QKeyEvent *e)
                 this->textCursor().deletePreviousChar();
             }
         }
+        else
+        {
+            QTextEdit::keyPressEvent(e);
+            return;
+        }
         e->accept();
         return;
     }
