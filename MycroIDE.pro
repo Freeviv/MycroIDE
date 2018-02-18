@@ -27,11 +27,13 @@ SOURCES += main.cpp\
         editorview.cpp \
     serial.cpp \
     console.cpp \
-    pythonhighlighter.cpp
+    pythonhighlighter.cpp \
+    pythonsourceedit.cpp
 
 HEADERS  += editorview.h \
     serial.h \
     console.h \
-    pythonhighlighter.h
+    pythonhighlighter.h \
+    pythonsourceedit.h
 
 FORMS    +=

@@ -1,6 +1,7 @@
 #include "editorview.h"
 
 #include "console.h"
+#include "pythonsourceedit.h"
 
 #include <cstdio>
 
@@ -113,7 +114,7 @@ void EditorView::add_widgets()
     connect(tabs,SIGNAL(tabCloseRequested(int)),SLOT(tab_close_requested(int)));
 
     src_con_splitter->addWidget(tabs);
-    QTextEdit *editor = new QTextEdit(tabs);
+    PythonSourceEdit *editor = new PythonSourceEdit(tabs);
     new PythonHighlighter(editor->document());
     tabs->addTab(editor,tr("Untitled"));
     editor->document()->setModified(false);
@@ -347,7 +348,7 @@ bool EditorView::save_document(QTextDocument *doc)
 void EditorView::document_changed()
 {
     int current_index = tabs->currentIndex();
-    if(static_cast<QTextEdit*>(tabs->currentWidget())->document()->isModified() &&
+    if(static_cast<PythonSourceEdit*>(tabs->currentWidget())->document()->isModified() &&
             !tabs->tabText(current_index).endsWith('*'))
     {
         tabs->setTabText(current_index,tabs->tabText(current_index) + "*");
@@ -358,7 +359,7 @@ void EditorView::document_changed()
 
 void EditorView::menu_file_new_clicked()
 {
-    QTextEdit *new_edit = new QTextEdit(tabs);
+    PythonSourceEdit *new_edit = new PythonSourceEdit(tabs);
     // should be deleted when textedit is deleted
     new PythonHighlighter(new_edit->document());
     tabs->addTab(new_edit,tr("Untitled"));
@@ -372,7 +373,7 @@ void EditorView::menu_file_open_clicked()
 
 void EditorView::menu_file_save_current_clicked()
 {
-    save_document(static_cast<QTextEdit*>(tabs->currentWidget())->document());
+    save_document(static_cast<PythonSourceEdit*>(tabs->currentWidget())->document());
 }
 
 void EditorView::menu_file_save_current_as_clicked()
@@ -402,13 +403,13 @@ void EditorView::menu_file_quit_clicked()
 
 void EditorView::menu_edit_undo_clicked()
 {
-    QTextEdit *edit = static_cast<QTextEdit*>(tabs->currentWidget());
+    PythonSourceEdit *edit = static_cast<PythonSourceEdit*>(tabs->currentWidget());
     edit->document()->undo();
 }
 
 void EditorView::menu_edit_redo_clicked()
 {
-    QTextEdit *edit = static_cast<QTextEdit*>(tabs->currentWidget());
+    PythonSourceEdit *edit = static_cast<PythonSourceEdit*>(tabs->currentWidget());
     edit->document()->redo();
 }
 
@@ -551,7 +552,7 @@ void EditorView::serial_error_handler(QSerialPort::SerialPortError error)
 void EditorView::tab_close_requested(int index)
 {
     // maybe avoid dynamic_cast and use static_cast
-    if(QTextEdit *edit = dynamic_cast<QTextEdit*>(tabs->widget(index)))
+    if(PythonSourceEdit *edit = dynamic_cast<PythonSourceEdit*>(tabs->widget(index)))
     {
         QTextDocument *doc = edit->document();
         if(doc->isModified())
