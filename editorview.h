@@ -32,6 +32,7 @@ private:
 
     QMenu* create_file_menu(QWidget *parent);
     QMenu* create_edit_menu(QWidget *parent);
+    QMenu* create_view_menu(QWidget *parent);
     QMenu* create_deploy_menu(QWidget *parent);
 
     bool save_document(QTextDocument *doc);
@@ -54,6 +55,8 @@ private slots:
     void menu_edit_cut_clicked();
     void menu_edit_copy_clicked();
     void menu_edit_paste_clicked();
+    // == view slots ==
+    void menu_view_mark_whitespaces(bool marked);
     // == deploy slots ==
     void menu_deploy_upload_selected();
     void menu_deploy_upload_file();

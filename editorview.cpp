@@ -115,7 +115,7 @@ void EditorView::add_widgets()
 
     src_con_splitter->addWidget(tabs);
     PythonSourceEdit *editor = new PythonSourceEdit(tabs);
-    new PythonHighlighter(editor->document());
+    highlighter = new PythonHighlighter(editor->document());
     tabs->addTab(editor,tr("Untitled"));
     editor->document()->setModified(false);
     connect(editor->document(),SIGNAL(contentsChanged()),SLOT(document_changed()));
@@ -144,6 +144,7 @@ void EditorView::add_menu()
     this->setMenuBar(menu_bar);
     menu_bar->addMenu(create_file_menu(menu_bar));
     menu_bar->addMenu(create_edit_menu(menu_bar));
+    menu_bar->addMenu(create_view_menu(menu_bar));
     menu_bar->addMenu(create_deploy_menu(menu_bar));
 }
 
@@ -297,6 +298,20 @@ QMenu* EditorView::create_edit_menu(QWidget *parent)
     edit->addAction(edit_paste);
 
     return edit;
+}
+
+QMenu* EditorView::create_view_menu(QWidget *parent)
+{
+    QMenu *view = new QMenu(tr("View"),parent);
+
+    QAction *view_mark_whitespaces = new QAction(tr("Mark whitespaces"),view);
+    view_mark_whitespaces->setCheckable(true);
+    view_mark_whitespaces->setChecked(false);
+    view_mark_whitespaces->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Space));
+    connect(view_mark_whitespaces,SIGNAL(toggled(bool)),SLOT(menu_view_mark_whitespaces(bool)));
+    view->addAction(view_mark_whitespaces);
+
+    return view;
 }
 
 QMenu* EditorView::create_deploy_menu(QWidget *parent)
@@ -454,6 +469,11 @@ void EditorView::menu_edit_copy_clicked()
 void EditorView::menu_edit_paste_clicked()
 {
 
+}
+
+void EditorView::menu_view_mark_whitespaces(bool marked)
+{
+    highlighter->markWhitespaces(marked);
 }
 
 void EditorView::menu_deploy_upload_selected()

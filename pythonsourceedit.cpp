@@ -14,7 +14,19 @@ PythonSourceEdit::PythonSourceEdit(QWidget *parent)
 
 void PythonSourceEdit::checkIntendDepth()
 {
-
+    QStringList lines = this->toPlainText().split('\n');
+    intendDepth.clear();
+    intendDepth.reserve(lines.size());
+    for(int i = 0; i < lines.size(); ++i)
+    {
+        QString line = lines.at(i);
+        int whitespaces = 0;
+        for(int j = 0; j < line.size(); ++j)
+        {
+            if(line.at(i) == ' ')whitespaces++;
+        }
+        intendDepth.replace(i,(whitespaces / 4) + ((whitespaces % 4 == 0) ? 0 : 1) );
+    }
 }
 
 int PythonSourceEdit::getCurrentLine() const

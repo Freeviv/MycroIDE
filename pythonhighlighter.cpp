@@ -11,6 +11,7 @@ PythonHighlighter::PythonHighlighter(QTextDocument *parent)
 
     keywordFormat.setForeground(Qt::darkBlue);
     keywordFormat.setFontWeight(QFont::Bold);
+    rule.highlighting_type = KEYWORD;
     QStringList keywordPatterns;
     keywordPatterns << "\\bFalse\\b" << "\\bNone\\b" << "\\bTrue\\b"
                     << "\\band\\b"  << "\\bas\\b" << "\\bassert\\b"
@@ -36,6 +37,7 @@ PythonHighlighter::PythonHighlighter(QTextDocument *parent)
     highlightingRules.append(rule);
 
     singleLineCommentFormat.setForeground(Qt::gray);
+    rule.highlighting_type = SINGLELINE_COMMENT;
     rule.pattern = QRegularExpression("#[^\n]*");
     rule.format = singleLineCommentFormat;
     highlightingRules.append(rule);
@@ -43,33 +45,58 @@ PythonHighlighter::PythonHighlighter(QTextDocument *parent)
     multiLineCommentFormat.setForeground(Qt::red);
 
     quotationFormat.setForeground(Qt::darkGreen);
+    rule.highlighting_type = MULTILINE_COMMENT;
     rule.pattern = QRegularExpression("\".*\"");
     rule.format = quotationFormat;
     highlightingRules.append(rule);
 
     functionFormat.setFontItalic(true);
     functionFormat.setForeground(Qt::blue);
+    rule.highlighting_type = FUNCTION;
     rule.pattern = QRegularExpression("\\b[A-Za-z0-9_]+(?=\\()");
     rule.format = functionFormat;
     highlightingRules.append(rule);
 
     selfFormat.setFontItalic(true);
     selfFormat.setForeground(QBrush(QColor(224,114,33)));
+    rule.highlighting_type = SELF;
     rule.pattern = QRegularExpression("\\s*sel[f]");
     rule.format = selfFormat;
+    highlightingRules.push_front(rule);
+
+    whitespaces.setBackground(QBrush(QColor(140,140,240)));
+    rule.highlighting_type = WHITESPACES;
+    rule.pattern = QRegularExpression("\\s");
+    rule.format = whitespaces;
     highlightingRules.append(rule);
 
     mls = QRegularExpression("(['\"])\\1\\1");
     mle = QRegularExpression(".*(['\"])\\1\\1");
+    highlight_level = KEYWORD | SINGLELINE_COMMENT | MULTILINE_COMMENT | FUNCTION | SELF;
+}
+
+void PythonHighlighter::markWhitespaces(bool mark)
+{
+    if(mark)
+    {
+        highlight_level = highlight_level | WHITESPACES;
+    }
+    else
+    {
+        highlight_level = highlight_level ^ WHITESPACES;
+    }
 }
 
 void PythonHighlighter::highlightBlock(const QString &text)
 {
     foreach (const HighlightingRule &rule, highlightingRules) {
-        QRegularExpressionMatchIterator matchIterator = rule.pattern.globalMatch(text);
-        while (matchIterator.hasNext()) {
-            QRegularExpressionMatch match = matchIterator.next();
-            setFormat(match.capturedStart(), match.capturedLength(), rule.format);
+        if(highlight_level & rule.highlighting_type)
+        {
+            QRegularExpressionMatchIterator matchIterator = rule.pattern.globalMatch(text);
+            while (matchIterator.hasNext()) {
+                QRegularExpressionMatch match = matchIterator.next();
+                setFormat(match.capturedStart(), match.capturedLength(), rule.format);
+            }
         }
     }
 
