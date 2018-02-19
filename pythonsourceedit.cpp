@@ -22,7 +22,7 @@ int PythonSourceEdit::getCurrentLine() const
     QTextCursor cursor = this->textCursor();
 
     int lines = 0;
-    while(cursor.positionInBlock() > 0) {
+    while(cursor.position() - cursor.positionInBlock() > 0) {
         cursor.movePosition(QTextCursor::Up);
         lines++;
     }
@@ -97,18 +97,7 @@ void PythonSourceEdit::keyPressEvent(QKeyEvent *e)
     {
         // TODO check intend depth
         // lookup previous line to check if it ends with a ':'
-        int pos = this->textCursor().position();
-        int line = getCurrentLine();
-        if(pos > 0)
-        {
-            QChar c = this->toPlainText().at(pos - 1);
-
-        }
-
-        // übernimmt vorherige tiefe
-        intendDepth.insert(line + 1,intendDepth.at(line));
-
-
+        fprintf(stderr,"%i\n",getCurrentLine());
         // at the end execute normal return
         QTextEdit::keyPressEvent(e);
         return;
