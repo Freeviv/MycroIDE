@@ -205,22 +205,9 @@ QWidget* EditorView::create_console_widget(QWidget *root)
     con_v_layout->addWidget(console_label);
 
     console = new Console(console_root_widget);
+    console->setEnabled(false);
     con_v_layout->addWidget(console);
     connect(console,SIGNAL(external_text_change(QString)),SLOT(console_text_edited(QString)));
-
-    // extra lineedit for commands
-//    QWidget *console_send_root_widget = new QWidget(console_root_widget);
-//    QHBoxLayout *con_h_layout = new QHBoxLayout(console_send_root_widget);
-//    console_command = new QLineEdit(console_root_widget);
-//    con_h_layout->addWidget(console_command);
-
-//    console_command_send = new QPushButton(console_root_widget);
-//    console_command_send->setText(tr("Send"));
-//    con_h_layout->addWidget(console_command_send);
-
-
-//    console_send_root_widget->setLayout(con_h_layout);
-//    con_v_layout->addWidget(console_send_root_widget);
 
     return console_root_widget;
 }
@@ -556,6 +543,7 @@ void EditorView::serial_connect_clicked()
             status_bar->showMessage(tr("Successfully opened ") + serial_device_path->text() + "!",2500);
             //console->setText(QString());
             console->clear();
+            console->setEnabled(true);
             connect(serial_device,SIGNAL(signal_data_available(int)),SLOT(serial_recieve_bytes(int)));
             con->setText(tr("Disconnect"));
         }
@@ -563,6 +551,7 @@ void EditorView::serial_connect_clicked()
         {
             delete serial_device;
             serial_device = nullptr;
+            console->setEnabled(false);
         }
     }
     else
