@@ -55,7 +55,7 @@ PythonHighlighter::PythonHighlighter(QTextDocument *parent)
 
     selfFormat.setFontItalic(true);
     selfFormat.setForeground(QBrush(QColor(224,114,33)));
-    rule.pattern = QRegularExpression("\s*sel[f]");
+    rule.pattern = QRegularExpression("\\s*sel[f]");
     rule.format = selfFormat;
     highlightingRules.append(rule);
 
