@@ -2,6 +2,7 @@
 #define PYTHONSOURCEEDIT_H
 
 #include <QTextEdit>
+#include <QVector>
 
 class PythonSourceEdit : public QTextEdit
 {
@@ -10,6 +11,9 @@ public:
     PythonSourceEdit(QWidget *parent = 0);
 
 private:
+    QVector<uint8_t> intendDepth;
+    void checkIntendDepth();
+    int getCurrentLine() const;
     void keyPressEvent(QKeyEvent *e);
 };
 
