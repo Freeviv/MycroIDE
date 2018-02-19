@@ -37,9 +37,12 @@ int PythonSourceEdit::getCurrentLine() const
 
 void PythonSourceEdit::keyPressEvent(QKeyEvent *e)
 {
+    //TODO inteddepth on removal and refresh intend depth on tab
     if(e->key() == Qt::Key_Tab)
     {
         this->textCursor().insertText("    ");
+        int line = getCurrentLine();
+        intendDepth.replace(line,intendDepth.at(line) + 1);
         e->accept();
         return;
     }
@@ -59,6 +62,9 @@ void PythonSourceEdit::keyPressEvent(QKeyEvent *e)
             {
                 this->textCursor().deletePreviousChar();
             }
+            int line = getCurrentLine();
+            int depth = intendDepth.at(line);
+            if(depth > 0)intendDepth.replace(line,depth - 1);
         }
         else
         {
@@ -97,9 +103,35 @@ void PythonSourceEdit::keyPressEvent(QKeyEvent *e)
     {
         // TODO check intend depth
         // lookup previous line to check if it ends with a ':'
-        fprintf(stderr,"%i\n",getCurrentLine());
+        int line = getCurrentLine();
+        int depth = intendDepth.at(line);
+
+        QString tmp = this->toPlainText();
+        if(this->textCursor().position() > 0 &&
+          tmp.at(this->textCursor().position() - 1) == ':')
+        {
+            depth++;
+        }
+        else
+        {
+            int pos = this->textCursor().position();
+            int pos_b = this->textCursor().positionInBlock();
+            QString line = QStringRef(&tmp,pos - pos_b,pos_b).toString().trimmed();
+            if(line.endsWith(QString("pass")) ||
+               line.startsWith(QString("raise")) ||
+               line.startsWith(QString("return")))
+            {
+                if(depth > 0)depth--;
+            }
+        }
+
+        intendDepth.insert(line + 1,depth);
         // at the end execute normal return
         QTextEdit::keyPressEvent(e);
+        for(int i = 0; i < depth; ++i)
+        {
+            this->textCursor().insertText("    ");
+        }
         return;
     }
     QTextEdit::keyPressEvent(e);
